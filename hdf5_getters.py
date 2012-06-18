@@ -148,8 +148,12 @@ def get_similar_artists(h5,songidx=0):
     file. By default, return the array for the first song in the h5 file.
     To get a regular numpy ndarray, cast the result to: numpy.array( )
     """
+    output = ""
     if h5.root.metadata.songs.nrows == songidx + 1:
-        return h5.root.metadata.similar_artists[h5.root.metadata.songs.cols.idx_similar_artists[songidx]:]
+        artists = h5.root.metadata.similar_artists[h5.root.metadata.songs.cols.idx_similar_artists[songidx]:]
+        for artist in artists:
+            output = output + "<artist>" + artist + "</artist>"
+        return output
     return h5.root.metadata.similar_artists[h5.root.metadata.songs.cols.idx_similar_artists[songidx]:
                                             h5.root.metadata.songs.cols.idx_similar_artists[songidx+1]]
 
@@ -396,21 +400,30 @@ def get_beats_start(h5,songidx=0):
     file. By default, return the array for the first song in the h5 file.
     To get a regular numpy ndarray, cast the result to: numpy.array( )
     """
+    output = ""
+    beat_confidence = h5.root.analysis.beats_confidence[h5.root.analysis.songs.cols.idx_beats_confidence[songidx]:]
     if h5.root.analysis.songs.nrows == songidx + 1:
-        return h5.root.analysis.beats_start[h5.root.analysis.songs.cols.idx_beats_start[songidx]:]
+        beats = h5.root.analysis.beats_start[h5.root.analysis.songs.cols.idx_beats_start[songidx]:]
+        j = 0
+        print len(beats)
+        for beat in beats:
+            conf = "confidence=\'" + str(beat_confidence[j]) + "\'"
+            output = output + "<beat " + conf + ">" + str(beat) + "</beat>"
+            j = j + 1
+        return output
     return h5.root.analysis.beats_start[h5.root.analysis.songs.cols.idx_beats_start[songidx]:
                                         h5.root.analysis.songs.cols.idx_beats_start[songidx+1]]
 
-def get_beats_confidence(h5,songidx=0):
-    """
-    Get beats confidence array. Takes care of the proper indexing if we are in aggregate
-    file. By default, return the array for the first song in the h5 file.
-    To get a regular numpy ndarray, cast the result to: numpy.array( )
-    """
-    if h5.root.analysis.songs.nrows == songidx + 1:
-        return h5.root.analysis.beats_confidence[h5.root.analysis.songs.cols.idx_beats_confidence[songidx]:]
-    return h5.root.analysis.beats_confidence[h5.root.analysis.songs.cols.idx_beats_confidence[songidx]:
-                                             h5.root.analysis.songs.cols.idx_beats_confidence[songidx+1]]
+#def get_beats_confidence(h5,songidx=0):
+#    """
+#    Get beats confidence array. Takes care of the proper indexing if we are in aggregate
+#    file. By default, return the array for the first song in the h5 file.
+#    To get a regular numpy ndarray, cast the result to: numpy.array( )
+#    """
+#    if h5.root.analysis.songs.nrows == songidx + 1:
+#        return h5.root.analysis.beats_confidence[h5.root.analysis.songs.cols.idx_beats_confidence[songidx]:]
+#    return h5.root.analysis.beats_confidence[h5.root.analysis.songs.cols.idx_beats_confidence[songidx]:
+#                                             h5.root.analysis.songs.cols.idx_beats_confidence[songidx+1]]
 
 def get_bars_start(h5,songidx=0):
     """
@@ -418,21 +431,29 @@ def get_bars_start(h5,songidx=0):
     file. By default, return the array for the first song in the h5 file.
     To get a regular numpy ndarray, cast the result to: numpy.array( )
     """
+    output = ""
+    bars_confidence = h5.root.analysis.bars_confidence[h5.root.analysis.songs.cols.idx_bars_confidence[songidx]:]
     if h5.root.analysis.songs.nrows == songidx + 1:
-        return h5.root.analysis.bars_start[h5.root.analysis.songs.cols.idx_bars_start[songidx]:]
+        bars = h5.root.analysis.bars_start[h5.root.analysis.songs.cols.idx_bars_start[songidx]:]
+        j = 0
+        for bar in bars:
+            bar_conf = "confidence=\'" + str(bars_confidence[j]) + "\'"
+            output = output + "<bar " + bar_conf + ">" + str(bar) + "</bar>"
+            j = j + 1
+        return output
     return h5.root.analysis.bars_start[h5.root.analysis.songs.cols.idx_bars_start[songidx]:
                                        h5.root.analysis.songs.cols.idx_bars_start[songidx+1]]
 
-def get_bars_confidence(h5,songidx=0):
-    """
-    Get bars start array. Takes care of the proper indexing if we are in aggregate
-    file. By default, return the array for the first song in the h5 file.
-    To get a regular numpy ndarray, cast the result to: numpy.array( )
-    """
-    if h5.root.analysis.songs.nrows == songidx + 1:
-        return h5.root.analysis.bars_confidence[h5.root.analysis.songs.cols.idx_bars_confidence[songidx]:]
-    return h5.root.analysis.bars_confidence[h5.root.analysis.songs.cols.idx_bars_confidence[songidx]:
-                                            h5.root.analysis.songs.cols.idx_bars_confidence[songidx+1]]
+#def get_bars_confidence(h5,songidx=0):
+#    """
+#    Get bars start array. Takes care of the proper indexing if we are in aggregate
+#    file. By default, return the array for the first song in the h5 file.
+#    To get a regular numpy ndarray, cast the result to: numpy.array( )
+#    """
+#    if h5.root.analysis.songs.nrows == songidx + 1:
+#        return h5.root.analysis.bars_confidence[h5.root.analysis.songs.cols.idx_bars_confidence[songidx]:]
+#    return h5.root.analysis.bars_confidence[h5.root.analysis.songs.cols.idx_bars_confidence[songidx]:
+#                                            h5.root.analysis.songs.cols.idx_bars_confidence[songidx+1]]
 
 def get_tatums_start(h5,songidx=0):
     """
