@@ -295,106 +295,135 @@ def get_track_id(h5,songidx=0):
     """
     return h5.root.analysis.songs.cols.track_id[songidx]
 
-def get_segments_start(h5,songidx=0):
+def get_segments(h5,songidx=0):
     """
     Get segments start array. Takes care of the proper indexing if we are in aggregate
     file. By default, return the array for the first song in the h5 file.
     To get a regular numpy ndarray, cast the result to: numpy.array( )
     """
     if h5.root.analysis.songs.nrows == songidx + 1:
-        return h5.root.analysis.segments_start[h5.root.analysis.songs.cols.idx_segments_start[songidx]:]
+        segments = h5.root.analysis.segments_start[h5.root.analysis.songs.cols.idx_segments_start[songidx]:]
+        segment_conf = h5.root.analysis.segments_confidence[h5.root.analysis.songs.cols.idx_segments_confidence[songidx]:]
+        segment_pitches = h5.root.analysis.segments_pitches[h5.root.analysis.songs.cols.idx_segments_pitches[songidx]:,:]
+        segment_timbres = h5.root.analysis.segments_timbre[h5.root.analysis.songs.cols.idx_segments_timbre[songidx]:,:]
+        segment_loudness_max = h5.root.analysis.segments_loudness_max[h5.root.analysis.songs.cols.idx_segments_loudness_max[songidx]:]
+        segment_loudness_max_time = h5.root.analysis.segments_loudness_max_time[h5.root.analysis.songs.cols.idx_segments_loudness_max_time[songidx]:]
+        segment_loudness_max_start = h5.root.analysis.segments_loudness_start[h5.root.analysis.songs.cols.idx_segments_loudness_start[songidx]:]
+        output = ""
+        j = 0
+        for segment in segments:
+            output = output + "<segment>"
+            conf = "confidence=\'" + str(segment_conf[j]) + "\'"
+            output = output + "<start " + conf + ">" + str(segment) + "</start>"
+            output = output + "<loudness_max_start>" + str(segment_loudness_max_start[j]) + "</loudness_max_start>"
+            output = output + "<loudness_max_time>" + str(segment_loudness_max_time[j]) + "</loudness_max_time>"
+            output = output + "<loudness_max>" + str(segment_loudness_max[j]) + "</loudness_max>"
+            for pitch in segment_pitches[j]:
+                output = output + "<pitch>" + str(pitch) + "</pitch>"
+            for timbre in segment_timbres[j]:
+                output = output + "<timbre>" + str(timbre) + "</timbre>"
+            output = output + "</segment>"
+            j = j + 1
+        return output
     return h5.root.analysis.segments_start[h5.root.analysis.songs.cols.idx_segments_start[songidx]:
                                            h5.root.analysis.songs.cols.idx_segments_start[songidx+1]]
     
-def get_segments_confidence(h5,songidx=0):
-    """
-    Get segments confidence array. Takes care of the proper indexing if we are in aggregate
-    file. By default, return the array for the first song in the h5 file.
-    To get a regular numpy ndarray, cast the result to: numpy.array( )
-    """
-    if h5.root.analysis.songs.nrows == songidx + 1:
-        return h5.root.analysis.segments_confidence[h5.root.analysis.songs.cols.idx_segments_confidence[songidx]:]
-    return h5.root.analysis.segments_confidence[h5.root.analysis.songs.cols.idx_segments_confidence[songidx]:
-                                                h5.root.analysis.songs.cols.idx_segments_confidence[songidx+1]]
+#def get_segments_confidence(h5,songidx=0):
+#    """
+#    Get segments confidence array. Takes care of the proper indexing if we are in aggregate
+#    file. By default, return the array for the first song in the h5 file.
+#    To get a regular numpy ndarray, cast the result to: numpy.array( )
+#    """
+#    if h5.root.analysis.songs.nrows == songidx + 1:
+#        return h5.root.analysis.segments_confidence[h5.root.analysis.songs.cols.idx_segments_confidence[songidx]:]
+#    return h5.root.analysis.segments_confidence[h5.root.analysis.songs.cols.idx_segments_confidence[songidx]:
+#                                                h5.root.analysis.songs.cols.idx_segments_confidence[songidx+1]]
 
-def get_segments_pitches(h5,songidx=0):
-    """
-    Get segments pitches array. Takes care of the proper indexing if we are in aggregate
-    file. By default, return the array for the first song in the h5 file.
-    To get a regular numpy ndarray, cast the result to: numpy.array( )
-    """
-    if h5.root.analysis.songs.nrows == songidx + 1:
-        return h5.root.analysis.segments_pitches[h5.root.analysis.songs.cols.idx_segments_pitches[songidx]:,:]
-    return h5.root.analysis.segments_pitches[h5.root.analysis.songs.cols.idx_segments_pitches[songidx]:
-                                             h5.root.analysis.songs.cols.idx_segments_pitches[songidx+1],:]
+#def get_segments_pitches(h5,songidx=0):
+#    """
+#    Get segments pitches array. Takes care of the proper indexing if we are in aggregate
+#    file. By default, return the array for the first song in the h5 file.
+#    To get a regular numpy ndarray, cast the result to: numpy.array( )
+#    """
+#    if h5.root.analysis.songs.nrows == songidx + 1:
+#        return h5.root.analysis.segments_pitches[h5.root.analysis.songs.cols.idx_segments_pitches[songidx]:,:]
+#    return h5.root.analysis.segments_pitches[h5.root.analysis.songs.cols.idx_segments_pitches[songidx]:
+#                                             h5.root.analysis.songs.cols.idx_segments_pitches[songidx+1],:]
 
-def get_segments_timbre(h5,songidx=0):
-    """
-    Get segments timbre array. Takes care of the proper indexing if we are in aggregate
-    file. By default, return the array for the first song in the h5 file.
-    To get a regular numpy ndarray, cast the result to: numpy.array( )
-    """
-    if h5.root.analysis.songs.nrows == songidx + 1:
-        return h5.root.analysis.segments_timbre[h5.root.analysis.songs.cols.idx_segments_timbre[songidx]:,:]
-    return h5.root.analysis.segments_timbre[h5.root.analysis.songs.cols.idx_segments_timbre[songidx]:
-                                            h5.root.analysis.songs.cols.idx_segments_timbre[songidx+1],:]
+#def get_segments_timbre(h5,songidx=0):
+#    """
+#    Get segments timbre array. Takes care of the proper indexing if we are in aggregate
+#    file. By default, return the array for the first song in the h5 file.
+#    To get a regular numpy ndarray, cast the result to: numpy.array( )
+#    """
+#    if h5.root.analysis.songs.nrows == songidx + 1:
+#        return h5.root.analysis.segments_timbre[h5.root.analysis.songs.cols.idx_segments_timbre[songidx]:,:]
+#    return h5.root.analysis.segments_timbre[h5.root.analysis.songs.cols.idx_segments_timbre[songidx]:
+#                                            h5.root.analysis.songs.cols.idx_segments_timbre[songidx+1],:]
 
-def get_segments_loudness_max(h5,songidx=0):
-    """
-    Get segments loudness max array. Takes care of the proper indexing if we are in aggregate
-    file. By default, return the array for the first song in the h5 file.
-    To get a regular numpy ndarray, cast the result to: numpy.array( )
-    """
-    if h5.root.analysis.songs.nrows == songidx + 1:
-        return h5.root.analysis.segments_loudness_max[h5.root.analysis.songs.cols.idx_segments_loudness_max[songidx]:]
-    return h5.root.analysis.segments_loudness_max[h5.root.analysis.songs.cols.idx_segments_loudness_max[songidx]:
-                                                  h5.root.analysis.songs.cols.idx_segments_loudness_max[songidx+1]]
+#def get_segments_loudness_max(h5,songidx=0):
+#    """
+#    Get segments loudness max array. Takes care of the proper indexing if we are in aggregate
+#    file. By default, return the array for the first song in the h5 file.
+#    To get a regular numpy ndarray, cast the result to: numpy.array( )
+#    """
+#    if h5.root.analysis.songs.nrows == songidx + 1:
+#        return h5.root.analysis.segments_loudness_max[h5.root.analysis.songs.cols.idx_segments_loudness_max[songidx]:]
+#    return h5.root.analysis.segments_loudness_max[h5.root.analysis.songs.cols.idx_segments_loudness_max[songidx]:
+#                                                  h5.root.analysis.songs.cols.idx_segments_loudness_max[songidx+1]]
 
-def get_segments_loudness_max_time(h5,songidx=0):
-    """
-    Get segments loudness max time array. Takes care of the proper indexing if we are in aggregate
-    file. By default, return the array for the first song in the h5 file.
-    To get a regular numpy ndarray, cast the result to: numpy.array( )
-    """
-    if h5.root.analysis.songs.nrows == songidx + 1:
-        return h5.root.analysis.segments_loudness_max_time[h5.root.analysis.songs.cols.idx_segments_loudness_max_time[songidx]:]
-    return h5.root.analysis.segments_loudness_max_time[h5.root.analysis.songs.cols.idx_segments_loudness_max_time[songidx]:
-                                                       h5.root.analysis.songs.cols.idx_segments_loudness_max_time[songidx+1]]
+#def get_segments_loudness_max_time(h5,songidx=0):
+#    """
+#    Get segments loudness max time array. Takes care of the proper indexing if we are in aggregate
+#    file. By default, return the array for the first song in the h5 file.
+#    To get a regular numpy ndarray, cast the result to: numpy.array( )
+#    """
+#    if h5.root.analysis.songs.nrows == songidx + 1:
+#        return h5.root.analysis.segments_loudness_max_time[h5.root.analysis.songs.cols.idx_segments_loudness_max_time[songidx]:]
+#    return h5.root.analysis.segments_loudness_max_time[h5.root.analysis.songs.cols.idx_segments_loudness_max_time[songidx]:
+#                                                       h5.root.analysis.songs.cols.idx_segments_loudness_max_time[songidx+1]]
 
-def get_segments_loudness_start(h5,songidx=0):
-    """
-    Get segments loudness start array. Takes care of the proper indexing if we are in aggregate
-    file. By default, return the array for the first song in the h5 file.
-    To get a regular numpy ndarray, cast the result to: numpy.array( )
-    """
-    if h5.root.analysis.songs.nrows == songidx + 1:
-        return h5.root.analysis.segments_loudness_start[h5.root.analysis.songs.cols.idx_segments_loudness_start[songidx]:]
-    return h5.root.analysis.segments_loudness_start[h5.root.analysis.songs.cols.idx_segments_loudness_start[songidx]:
-                                                    h5.root.analysis.songs.cols.idx_segments_loudness_start[songidx+1]]
+#def get_segments_loudness_start(h5,songidx=0):
+#    """
+#    Get segments loudness start array. Takes care of the proper indexing if we are in aggregate
+#    file. By default, return the array for the first song in the h5 file.
+#    To get a regular numpy ndarray, cast the result to: numpy.array( )
+#    """
+#    if h5.root.analysis.songs.nrows == songidx + 1:
+#        return h5.root.analysis.segments_loudness_start[h5.root.analysis.songs.cols.idx_segments_loudness_start[songidx]:]
+#    return h5.root.analysis.segments_loudness_start[h5.root.analysis.songs.cols.idx_segments_loudness_start[songidx]:
+#                                                    h5.root.analysis.songs.cols.idx_segments_loudness_start[songidx+1]]
 
-def get_sections_start(h5,songidx=0):
+def get_sections(h5,songidx=0):
     """
     Get sections start array. Takes care of the proper indexing if we are in aggregate
     file. By default, return the array for the first song in the h5 file.
     To get a regular numpy ndarray, cast the result to: numpy.array( )
     """
+    sections_confidence = h5.root.analysis.sections_confidence[h5.root.analysis.songs.cols.idx_sections_confidence[songidx]:]
     if h5.root.analysis.songs.nrows == songidx + 1:
-        return h5.root.analysis.sections_start[h5.root.analysis.songs.cols.idx_sections_start[songidx]:]
+        output = ""
+        sections = h5.root.analysis.sections_start[h5.root.analysis.songs.cols.idx_sections_start[songidx]:]
+        j = 0
+        for section in sections:
+            sect_conf = "confidence=\'" + str(sections_confidence[j]) + "\'"
+            output = output + "<section " + sect_conf + ">" + str(section) + "</section>"
+        return output
     return h5.root.analysis.sections_start[h5.root.analysis.songs.cols.idx_sections_start[songidx]:
                                            h5.root.analysis.songs.cols.idx_sections_start[songidx+1]]
 
-def get_sections_confidence(h5,songidx=0):
-    """
-    Get sections confidence array. Takes care of the proper indexing if we are in aggregate
-    file. By default, return the array for the first song in the h5 file.
-    To get a regular numpy ndarray, cast the result to: numpy.array( )
-    """
-    if h5.root.analysis.songs.nrows == songidx + 1:
-        return h5.root.analysis.sections_confidence[h5.root.analysis.songs.cols.idx_sections_confidence[songidx]:]
-    return h5.root.analysis.sections_confidence[h5.root.analysis.songs.cols.idx_sections_confidence[songidx]:
-                                                h5.root.analysis.songs.cols.idx_sections_confidence[songidx+1]]
+#def get_sections_confidence(h5,songidx=0):
+#    """
+#    Get sections confidence array. Takes care of the proper indexing if we are in aggregate
+#    file. By default, return the array for the first song in the h5 file.
+#    To get a regular numpy ndarray, cast the result to: numpy.array( )
+#    """
+#    if h5.root.analysis.songs.nrows == songidx + 1:
+#        return h5.root.analysis.sections_confidence[h5.root.analysis.songs.cols.idx_sections_confidence[songidx]:]
+#    return h5.root.analysis.sections_confidence[h5.root.analysis.songs.cols.idx_sections_confidence[songidx]:
+#                                                h5.root.analysis.songs.cols.idx_sections_confidence[songidx+1]]
 
-def get_beats_start(h5,songidx=0):
+def get_beats(h5,songidx=0):
     """
     Get beats start array. Takes care of the proper indexing if we are in aggregate
     file. By default, return the array for the first song in the h5 file.
@@ -405,7 +434,6 @@ def get_beats_start(h5,songidx=0):
     if h5.root.analysis.songs.nrows == songidx + 1:
         beats = h5.root.analysis.beats_start[h5.root.analysis.songs.cols.idx_beats_start[songidx]:]
         j = 0
-        print len(beats)
         for beat in beats:
             conf = "confidence=\'" + str(beat_confidence[j]) + "\'"
             output = output + "<beat " + conf + ">" + str(beat) + "</beat>"
@@ -425,7 +453,7 @@ def get_beats_start(h5,songidx=0):
 #    return h5.root.analysis.beats_confidence[h5.root.analysis.songs.cols.idx_beats_confidence[songidx]:
 #                                             h5.root.analysis.songs.cols.idx_beats_confidence[songidx+1]]
 
-def get_bars_start(h5,songidx=0):
+def get_bars(h5,songidx=0):
     """
     Get bars start array. Takes care of the proper indexing if we are in aggregate
     file. By default, return the array for the first song in the h5 file.
@@ -455,27 +483,34 @@ def get_bars_start(h5,songidx=0):
 #    return h5.root.analysis.bars_confidence[h5.root.analysis.songs.cols.idx_bars_confidence[songidx]:
 #                                            h5.root.analysis.songs.cols.idx_bars_confidence[songidx+1]]
 
-def get_tatums_start(h5,songidx=0):
+def get_tatums(h5,songidx=0):
     """
     Get tatums start array. Takes care of the proper indexing if we are in aggregate
     file. By default, return the array for the first song in the h5 file.
     To get a regular numpy ndarray, cast the result to: numpy.array( )
     """
+    output = ""
+    tatum_confidence = h5.root.analysis.tatums_confidence[h5.root.analysis.songs.cols.idx_tatums_confidence[songidx]:]
     if h5.root.analysis.songs.nrows == songidx + 1:
-        return h5.root.analysis.tatums_start[h5.root.analysis.songs.cols.idx_tatums_start[songidx]:]
+        tatums = h5.root.analysis.tatums_start[h5.root.analysis.songs.cols.idx_tatums_start[songidx]:]
+        j = 0
+        for tatum in tatums:
+            conf = "confidence=\'" + str(tatum_confidence[j]) + "\'"
+            output = output + "<tatum " + conf + ">" + str(tatum) + "</tatum>"
+        return output
     return h5.root.analysis.tatums_start[h5.root.analysis.songs.cols.idx_tatums_start[songidx]:
                                          h5.root.analysis.songs.cols.idx_tatums_start[songidx+1]]
 
-def get_tatums_confidence(h5,songidx=0):
-    """
-    Get tatums confidence array. Takes care of the proper indexing if we are in aggregate
-    file. By default, return the array for the first song in the h5 file.
-    To get a regular numpy ndarray, cast the result to: numpy.array( )
-    """
-    if h5.root.analysis.songs.nrows == songidx + 1:
-        return h5.root.analysis.tatums_confidence[h5.root.analysis.songs.cols.idx_tatums_confidence[songidx]:]
-    return h5.root.analysis.tatums_confidence[h5.root.analysis.songs.cols.idx_tatums_confidence[songidx]:
-                                              h5.root.analysis.songs.cols.idx_tatums_confidence[songidx+1]]
+#def get_tatums_confidence(h5,songidx=0):
+#    """
+#    Get tatums confidence array. Takes care of the proper indexing if we are in aggregate
+#    file. By default, return the array for the first song in the h5 file.
+#    To get a regular numpy ndarray, cast the result to: numpy.array( )
+#    """
+#    if h5.root.analysis.songs.nrows == songidx + 1:
+#        return h5.root.analysis.tatums_confidence[h5.root.analysis.songs.cols.idx_tatums_confidence[songidx]:]
+#    return h5.root.analysis.tatums_confidence[h5.root.analysis.songs.cols.idx_tatums_confidence[songidx]:
+#                                              h5.root.analysis.songs.cols.idx_tatums_confidence[songidx+1]]
 
 def get_artist_mbtags(h5,songidx=0):
     """

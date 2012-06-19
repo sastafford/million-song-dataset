@@ -41,11 +41,12 @@ outputDir = root_dir+"/output"
 i = 0
 hits = 0
 # loop through each song and create an xml file
-while (i < len(songs)):
+# while (i < len(songs)):
+while (i < 1000):
     song = re.split(r'[ ]', songs[i])
     trackid = song_track_dict[song[0]]
     output = (
-    "<song>\n"
+    "<song xmlns=\'http://labrosa.ee.columbia.edu/millionsong/\'>\n"
     "    <song_id>" + song[0] + "</song_id>\n"
     "    <order>" + song[1][:-1] + "</order>\n"
     "    <track_id>" + trackid + "</track_id>\n"
