@@ -27,16 +27,32 @@ for line in song_track_file:
         song_track_dict[song_track[0]] = song_track[1][:-1]
     else:
         song_track_dict[line[:-1]] = ""
+song_track_file.close()
 
-# LOOP THROUGH THE SONG LIST AND GENERATE XML
-songs_file = open(root_dir+"/data/kaggle_songs.txt")
-songs = songs_file.readlines()
+# Read the evaluation user/songid/listens triplet
+user_song_listen_file = open(root_dir+"/data/kaggle_visible_evaluation_triplets.txt")
+listen_dict = dict()
+for line in user_song_listen_file:
+    user_song_listen = re.split(r'[\t]', line)
+    song = user_song_listen[1]
+    user_listens = [user_song_listen[0], user_song_listen[2][:-1]]
+    if song in listen_dict:
+        listen_dict[song].append(user_listens)
+    else:
+        listen_dict[song] = []
+        listen_dict[song].append(user_listens)
 
 # get all getters from the hdf5_getters module
 getters = filter(lambda x: x[:4] == 'get_', hdf5_getters.__dict__.keys())
 getters.remove("get_num_songs") # special case
 getters = np.sort(getters)
 
+elapsed_time = time.time() - start_time
+logger.info("INIT COMPLETE: "+str(elapsed_time))
+
+# LOOP THROUGH THE SONG LIST AND GENERATE XML
+songs_file = open(root_dir+"/data/kaggle_songs.txt")
+songs = songs_file.readlines()
 outputDir = root_dir+"/output"
 i = 0
 hits = 0
@@ -51,7 +67,11 @@ while (i < 1000):
     "    <order>" + song[1][:-1] + "</order>\n"
     "    <track_id>" + trackid + "</track_id>\n"
     )
-
+    
+    if song[0] in listen_dict:
+        for user_listen in listen_dict[song[0]]:
+            output = (output + "<user>\n<user-id>" + user_listen[0] + "</user-id>\n"
+                      "<number-of-listens>" + user_listen[1] + "</number-of-listens>\n</user>")
 
     track_dir = root_dir+"/data/MillionSongSubset/data/"+trackid[2:3]+"/"+trackid[3:4]+"/"+trackid[4:5]
     track_file = track_dir+"/"+trackid+".h5"
@@ -59,7 +79,7 @@ while (i < 1000):
     if not os.path.isfile(track_file):
         logger.debug(track_file+' does not exist.')
     else:
-        logger.debug(song[0] +' HIT')
+        logger.info(song[0] +' HIT')
         h5 = hdf5_getters.open_h5_file_read(track_file)    
         for getter in getters:
             try:
