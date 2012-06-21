@@ -4,7 +4,30 @@ import logging
 import numpy as np
 import os
 import re
+import sys
 import time
+
+def die_with_usage():
+    """ HELP MENU """
+    print 'song.py'
+    print 'S. Stafford (2012)'
+    print 'translate hdf5 tracks to XML format'
+    print 'usage:'
+    print '   python song.py [dir] <OPT: max>'
+    print 'example:'
+    print '   python song.py c:\songs\data\A\A\A 100'
+    sys.exit(0)
+
+# help menu
+if len(sys.argv) < 2:
+    die_with_usage()
+
+input_dir = sys.argv[1]
+max = sys.argv[2]
+
+if not os.path.isdir(input_dir):
+    print input_dir, "does not exist"
+    exit()
 
 # GLOBAL VARS - need to read in from input
 root_dir = "/cygdrive/c/sandbox/msd"
@@ -18,7 +41,7 @@ logger.info("START")
 
 start_time = time.time()
 
-# READ THE SONG ID/TRACK ID MAPPING INTO MEMORY
+# READ THE TRACK ID/SONG ID MAPPING INTO MEMORY
 song_track_file = open(root_dir+"/data/taste_profile_song_to_tracks.txt")
 song_track_dict = dict()
 for line in song_track_file:
@@ -52,35 +75,22 @@ logger.info("INIT COMPLETE: "+str(elapsed_time))
 
 # LOOP THROUGH THE SONG LIST AND GENERATE XML
 songs_file = open(root_dir+"/data/kaggle_songs.txt")
-songs = songs_file.readlines()
+song_order = dict()
+for line in songs_file:
+    song = re.split(r'[ ]', line)
+    song_order[song[0]] = song[1]
+
 outputDir = root_dir+"/output"
 i = 0
 hits = 0
-# loop through each song and create an xml file
-# while (i < len(songs)):
-while (i < 1000):
-    song = re.split(r'[ ]', songs[i])
-    trackid = song_track_dict[song[0]]
-    output = (
-    "<song xmlns=\'http://labrosa.ee.columbia.edu/millionsong/\'>\n"
-    "    <song_id>" + song[0] + "</song_id>\n"
-    "    <order>" + song[1][:-1] + "</order>\n"
-    "    <track_id>" + trackid + "</track_id>\n"
-    )
-    
-    if song[0] in listen_dict:
-        for user_listen in listen_dict[song[0]]:
-            output = (output + "<user>\n<user-id>" + user_listen[0] + "</user-id>\n"
-                      "<number-of-listens>" + user_listen[1] + "</number-of-listens>\n</user>")
 
-    track_dir = root_dir+"/data/MillionSongSubset/data/"+trackid[2:3]+"/"+trackid[3:4]+"/"+trackid[4:5]
-    track_file = track_dir+"/"+trackid+".h5"
-    # Track file check
-    if not os.path.isfile(track_file):
-        logger.debug(track_file+' does not exist.')
-    else:
-        logger.info(song[0] +' HIT')
-        h5 = hdf5_getters.open_h5_file_read(track_file)    
+for dirpath, dirnames, filenames in os.walk(input_dir):
+    for track_file in filenames:
+        print track_file
+        #song = re.split(r'[ ]', songs[i])
+        output = "<song xmlns=\'http://labrosa.ee.columbia.edu/millionsong/\'>"
+        h5 = hdf5_getters.open_h5_file_read(os.path.join(dirpath, track_file))
+        song_id = hdf5_getters.get_song_id(h5)
         for getter in getters:
             try:
                 res = hdf5_getters.__getattribute__(getter)(h5)
@@ -91,16 +101,24 @@ while (i < 1000):
             else:
                 output = output + "    <"+getter[4:]+">"+str(res)+"</"+getter[4:]+">"
         h5.close()
-        hits = hits + 1
-    i = i + 1
-    output = output + "</song>"
-    dir = outputDir+"/"+song[0][2:3]+"/"+song[0][3:4]+"/"+song[0][4:5]
-    if not os.path.exists(dir):
-        os.makedirs(dir)
-    filename = song[0] + ".xml"
-    f = open(dir+"/"+filename, 'w+')
-    f.write(output)
-    f.close()
-print "Hits:", hits
+        if song_id in song_order:
+            output = output + "<order>" + song_order[song_id][:-1] + "</order>"
+            logger.debug(track_file +' HIT')
+            hits = hits + 1     
+        
+        if song_id in listen_dict:
+            logger.debug("user listens: " + track_file)
+            for user_listen in listen_dict[song_id]:
+                output = (output + "<user><user-id>" + user_listen[0] + "</user-id>"
+                      "<number-of-listens>" + user_listen[1] + "</number-of-listens></user>")
+        output = output + "</song>"
+        dir = outputDir+"/"+track_file[2:3]+"/"+track_file[3:4]+"/"+track_file[4:5]
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        filename = track_file[:-3] + ".xml"
+        f = open(dir+"/"+filename, 'w+')
+        f.write(output)
+        f.close()
+print "SongID Hits:", hits
 elapsed_time = time.time() - start_time
 print("Elapsed Time: ", elapsed_time)
