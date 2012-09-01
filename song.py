@@ -13,24 +13,33 @@ def die_with_usage():
     print 'S. Stafford (2012)'
     print 'translate hdf5 tracks to XML format'
     print 'usage:'
-    print '   python song.py [dir] <OPT: max>'
+    print '   python song.py [input_dir] [output_dir] <OPT: max>'
     print 'example:'
-    print '   python song.py c:\songs\data\A\A\A 100'
+    print '   python song.py /space/A/A/A /space/out/A/A/A 100'
     sys.exit(0)
+
+def xmlreplace(str):
+    return str.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\'", "&apos;").replace("\"", "&quot;")
 
 # help menu
 if len(sys.argv) < 2:
     die_with_usage()
 
 input_dir = sys.argv[1]
-max = sys.argv[2]
+output_dir = sys.argv[2]
+max = sys.argv[3]
 
 if not os.path.isdir(input_dir):
     print input_dir, "does not exist"
     exit()
 
+if not os.path.isdir(output_dir):
+    print output_dir, "does not exist"
+    exit()
+
 # GLOBAL VARS - need to read in from input
-root_dir = "/cygdrive/c/sandbox/msd"
+root_dir = "/opt/million-song-dataset"
+exclude_fields = ("get_segments")
 
 #LOGGING
 now = datetime.datetime.now().strftime("%Y%m%dT%H%M")
@@ -68,7 +77,9 @@ for line in user_song_listen_file:
 # get all getters from the hdf5_getters module
 getters = filter(lambda x: x[:4] == 'get_', hdf5_getters.__dict__.keys())
 getters.remove("get_num_songs") # special case
+getters.remove("get_segments")
 getters = np.sort(getters)
+print getters
 
 elapsed_time = time.time() - start_time
 logger.info("INIT COMPLETE: "+str(elapsed_time))
@@ -80,7 +91,7 @@ for line in songs_file:
     song = re.split(r'[ ]', line)
     song_order[song[0]] = song[1]
 
-outputDir = root_dir+"/output"
+outputDir = output_dir
 i = 0
 hits = 0
 
@@ -88,7 +99,7 @@ for dirpath, dirnames, filenames in os.walk(input_dir):
     for track_file in filenames:
         print track_file
         #song = re.split(r'[ ]', songs[i])
-        output = "<song xmlns=\'http://labrosa.ee.columbia.edu/millionsong/\'>"
+        output = "<song xmlns=\'http://labrosa.ee.columbia.edu/millionsong/\'>\n"
         h5 = hdf5_getters.open_h5_file_read(os.path.join(dirpath, track_file))
         song_id = hdf5_getters.get_song_id(h5)
         for getter in getters:
@@ -97,20 +108,20 @@ for dirpath, dirnames, filenames in os.walk(input_dir):
             except AttributeError, e:
                 continue 
             if res.__class__.__name__ == 'ndarray':
-                output = output + "    <"+getter[4:]+">"+str(res.shape)+"</"+getter[4:]+">"
+                output = output + "<"+getter[4:]+">"+str(res.shape)+"</"+getter[4:]+">\n"
             else:
-                output = output + "    <"+getter[4:]+">"+str(res)+"</"+getter[4:]+">"
+                output = output + "<"+getter[4:]+">"+str(res)+"</"+getter[4:]+">\n"
         h5.close()
         if song_id in song_order:
-            output = output + "<order>" + song_order[song_id][:-1] + "</order>"
+            output = output + "<order>" + song_order[song_id][:-1] + "</order>\n"
             logger.debug(track_file +' HIT')
             hits = hits + 1     
         
         if song_id in listen_dict:
             logger.debug("user listens: " + track_file)
             for user_listen in listen_dict[song_id]:
-                output = (output + "<user><user-id>" + user_listen[0] + "</user-id>"
-                      "<number-of-listens>" + user_listen[1] + "</number-of-listens></user>")
+                output = (output + "<user><user-id>" + user_listen[0] + "</user-id>\n"
+                      "<number-of-listens>" + user_listen[1] + "</number-of-listens>\n</user>\n")
         output = output + "</song>"
         dir = outputDir+"/"+track_file[2:3]+"/"+track_file[3:4]+"/"+track_file[4:5]
         if not os.path.exists(dir):

@@ -29,8 +29,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 import tables
+import re
 
-
+def xmlreplace(str):
+    str1 = str.replace("&", "&amp;").replace("\'", "&apos;").replace(">", "&gt;").replace("<", "&lt;").replace("\"", "&quot;")
+    remove_re = re.compile(u'[\x00-\x08\x0B-\x0C\x0E-\x1F\x7f%s]' % u'')
+    return remove_re.sub('', str1)
+       
 def open_h5_file_read(h5filename):
     """
     Open an existing H5 in read mode.
@@ -98,19 +103,19 @@ def get_artist_location(h5,songidx=0):
     """
     Get artist location from a HDF5 song file, by default the first song in it
     """
-    return h5.root.metadata.songs.cols.artist_location[songidx]
+    return xmlreplace(str(h5.root.metadata.songs.cols.artist_location[songidx]))
 
 def get_artist_name(h5,songidx=0):
     """
     Get artist name from a HDF5 song file, by default the first song in it
     """
-    return h5.root.metadata.songs.cols.artist_name[songidx]
+    return xmlreplace(str(h5.root.metadata.songs.cols.artist_name[songidx]))
 
 def get_release(h5,songidx=0):
     """
     Get release from a HDF5 song file, by default the first song in it
     """
-    return h5.root.metadata.songs.cols.release[songidx]
+    return xmlreplace(str(h5.root.metadata.songs.cols.release[songidx]))
 
 def get_release_7digitalid(h5,songidx=0):
     """
@@ -134,7 +139,7 @@ def get_title(h5,songidx=0):
     """
     Get title from a HDF5 song file, by default the first song in it
     """
-    return h5.root.metadata.songs.cols.title[songidx]
+    return xmlreplace(str(h5.root.metadata.songs.cols.title[songidx]))
 
 def get_track_7digitalid(h5,songidx=0):
     """
@@ -152,7 +157,7 @@ def get_similar_artists(h5,songidx=0):
     if h5.root.metadata.songs.nrows == songidx + 1:
         artists = h5.root.metadata.similar_artists[h5.root.metadata.songs.cols.idx_similar_artists[songidx]:]
         for artist in artists:
-            output = output + "<artist>" + artist + "</artist>"
+            output = output + "<artist>" + xmlreplace(artist) + "</artist>"
         return output
     return h5.root.metadata.similar_artists[h5.root.metadata.songs.cols.idx_similar_artists[songidx]:
                                             h5.root.metadata.songs.cols.idx_similar_artists[songidx+1]]
@@ -172,7 +177,7 @@ def get_artist_terms(h5,songidx=0):
         for term in terms:
             weight = "weight=\'" + str(term_weight[j]) + "\'"
             frequency = "frequency=\'" + str(term_freq[j]) + "\'"
-            output = output + "<term " + weight + " " + frequency + ">" + term + "</term>"
+            output = output + "<term " + weight + " " + frequency + ">" + xmlreplace(term) + "</term>"
             j = j + 1
         return output
     return h5.root.metadata.artist_terms[h5.root.metadata.songs.cols.idx_artist_terms[songidx]:h5.root.metadata.songs.cols.idx_artist_terms[songidx+1]]
@@ -524,7 +529,7 @@ def get_artist_mbtags(h5,songidx=0):
         tag_count = h5.root.musicbrainz.artist_mbtags_count[h5.root.musicbrainz.songs.cols.idx_artist_mbtags[songidx]:]
         j = 0
         for tag in tags:
-            output = output +"<tag usage-count=\'"+ str(tag_count[j]) + "\'>" + tag + "</tag>"
+            output = output +"<tag usage-count=\'"+ str(tag_count[j]) + "\'>" + xmlreplace(tag) + "</tag>"
             j = j + 1
         return output
     return h5.root.musicbrainz.artist_mbtags[h5.root.metadata.songs.cols.idx_artist_mbtags[songidx]:h5.root.metadata.songs.cols.idx_artist_mbtags[songidx+1]]
