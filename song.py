@@ -27,7 +27,7 @@ if len(sys.argv) < 2:
 
 input_dir = sys.argv[1]
 output_dir = sys.argv[2]
-max = sys.argv[3]
+#max = sys.argv[3]
 
 if not os.path.isdir(input_dir):
     print input_dir, "does not exist"
@@ -39,7 +39,7 @@ if not os.path.isdir(output_dir):
 
 # GLOBAL VARS - need to read in from input
 root_dir = "/opt/million-song-dataset"
-exclude_fields = ("get_segments")
+#exclude_fields = ("get_segments")
 
 #LOGGING
 now = datetime.datetime.now().strftime("%Y%m%dT%H%M")
@@ -77,7 +77,7 @@ for line in user_song_listen_file:
 # get all getters from the hdf5_getters module
 getters = filter(lambda x: x[:4] == 'get_', hdf5_getters.__dict__.keys())
 getters.remove("get_num_songs") # special case
-getters.remove("get_segments")
+#getters.remove("get_segments")
 getters = np.sort(getters)
 print getters
 
@@ -97,7 +97,7 @@ hits = 0
 
 for dirpath, dirnames, filenames in os.walk(input_dir):
     for track_file in filenames:
-        print track_file
+        #print track_file
         #song = re.split(r'[ ]', songs[i])
         output = "<song xmlns=\'http://labrosa.ee.columbia.edu/millionsong/\'>\n"
         h5 = hdf5_getters.open_h5_file_read(os.path.join(dirpath, track_file))
